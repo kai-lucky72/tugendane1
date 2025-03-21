@@ -17,4 +17,5 @@ dependencies = [
     "redis>=5.2.1",
     "twilio>=9.5.1",
     "numpy==1.22.0",
+    "openai>=1.67.0",
 ]

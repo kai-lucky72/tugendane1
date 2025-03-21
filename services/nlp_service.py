@@ -13,6 +13,7 @@ class NLPService:
     
     def __init__(self, app=None):
         self.app = app
+        self.openai_client = None
         self.intent_patterns = self._define_intent_patterns()
         
         if app:
@@ -176,7 +177,8 @@ class NLPService:
         return entities
     
     def process_message(self, message_id):
-        """Process a message to extract intent and entities"""
+        """Process a message using OpenAI to extract intent and entities"""
+        import openai
         try:
             # Get the message from the database
             message = Message.query.get(message_id)
