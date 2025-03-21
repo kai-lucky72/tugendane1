@@ -13,10 +13,15 @@ class Config:
 
     # Africa's Talking API configuration for Rwanda
     AT_USERNAME = os.environ.get('AT_USERNAME', 'sandbox')
-    AT_API_KEY = os.environ.get('AT_API_KEY', 'your_api-key')
+    AT_API_KEY = os.environ.get('AT_API_KEY')
     AT_SHORTCODE = os.environ.get('AT_SHORTCODE', '12345')
     AT_SENDER_ID = os.environ.get('AT_SENDER_ID', 'TUGENDANE')  # For alphanumeric sender ID
     AT_COUNTRY_CODE = '+250'  # Rwanda country code
+    
+    # Webhook configuration
+    BASE_URL = os.environ.get('BASE_URL', 'https://tugendane.yourdomain.repl.co')
+    SMS_WEBHOOK_PATH = '/api/sms/receive'
+    VOICE_WEBHOOK_PATH = '/api/voice/receive'
 
     # OpenAI configuration for LLM
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'your-openai-key')
