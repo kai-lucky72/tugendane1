@@ -19,8 +19,9 @@ class GovernmentService(db.Model):
     opening_hours = db.Column(db.String(255))  # Stored as string like "Mon-Fri: 8:00-17:00"
     required_documents = db.Column(db.Text)
 
-    # GIS data
-    location = db.Column(db.String(255))  # Store as WKT string for now
+    # Location data
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
 
     # Additional data as JSON
     service_metadata = db.Column(JSON)

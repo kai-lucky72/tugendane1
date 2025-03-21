@@ -6,14 +6,16 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-key-tugendane')
 
     # Database configuration
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///tugendane.db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///instance/tugendane.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_recycle": 300,
+        'echo': True,
     }
     # Enable SQLite extensions for spatial support
     SQLALCHEMY_ENGINE_OPTIONS['connect_args'] = {'detect_types': sqlite3.PARSE_DECLTYPES}
     SQLALCHEMY_ENGINE_OPTIONS['creator'] = lambda: sqlite3.connect('instance/tugendane.db', uri=True)
+
 
     # Africa's Talking API configuration for Rwanda
     AT_USERNAME = os.environ.get('AT_USERNAME', 'sandbox')
