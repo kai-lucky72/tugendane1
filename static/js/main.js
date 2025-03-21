@@ -25,110 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Services map
     const servicesMap = document.getElementById('services-map');
     if (servicesMap) {
-        // Initialize map when document is ready
-        // Initialize map centered on Rwanda
-        const map = L.map('services-map').setView([-1.9403, 30.0596], 12);
-
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        // Initialize markers for different service types
-        const markers = {
-            health: [],
-            education: [],
-            administration: [],
-            identification: [],
-            taxation: [],
-            security: [],
-            social: [],
-            default: []
-        };
-
-        // Fetch services from API
-        fetch('/api/services')
-            .then(response => response.json())
-            .then(data => {
-                if (!data.services) {
-                    console.error("No services data received");
-                    return;
-                }
-
-                data.services.forEach(service => {
-                    const marker = L.marker([service.latitude, service.longitude])
-                        .bindPopup(`
-                            <strong>${service.name}</strong><br>
-                            Category: ${service.category}<br>
-                            Address: ${service.address}<br>
-                            ${service.phone_number ? `Phone: ${service.phone_number}<br>` : ''}
-                            ${service.opening_hours ? `Hours: ${service.opening_hours}` : ''}
-                        `);
-
-                    // Add to category group
-                    if (service.category && markers[service.category]) {
-                        markers[service.category].push(marker);
-                    } else {
-                        markers.default.push(marker);
-                    }
-                });
-
-                // Create layer groups for each category
-                const layers = {};
-                Object.keys(markers).forEach(category => {
-                    if (markers[category].length > 0) {
-                        layers[`${category.charAt(0).toUpperCase() + category.slice(1)} Services`] = L.layerGroup(markers[category]);
-                    }
-                });
-
-                // Add all markers to map initially
-                Object.values(layers).forEach(layer => layer.addTo(map));
-
-                // Add layer control
-                L.control.layers(null, layers, {collapsed: false}).addTo(map);
-            })
-            .catch(error => {
-                console.error("Error loading services:", error);
-            });
-
-        // Add search functionality
-        const searchControl = document.getElementById('map-search');
-        if (searchControl) {
-            const searchInput = searchControl.querySelector('input');
-            const searchButton = searchControl.querySelector('button');
-
-            const searchServices = (query) => {
-                query = query.toLowerCase();
-                let found = false;
-
-                Object.values(markers).flat().forEach(marker => {
-                    const popup = marker.getPopup();
-                    const content = popup.getContent().toLowerCase();
-
-                    if (content.includes(query)) {
-                        marker.openPopup();
-                        map.setView(marker.getLatLng(), 15);
-                        found = true;
-                    }
-                });
-
-                return found;
-            };
-
-            searchButton.addEventListener('click', () => {
-                if (!searchServices(searchInput.value)) {
-                    alert('No services found matching your search.');
-                }
-            });
-
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    if (!searchServices(searchInput.value)) {
-                        alert('No services found matching your search.');
-                    }
-                }
-            });
-        }
+        initMap();
     }
 });
 
@@ -237,6 +134,78 @@ function initializeChat() {
     }
 }
 
+
+// Initialize map and markers
+let map;
+let markers = [];
+let userMarker;
+
+function initMap() {
+    // Center on Rwanda
+    const rwanda = [-1.9403, 29.8739];
+
+    map = L.map('services-map').setView(rwanda, 8);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Get user's location
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+
+            // Add user marker
+            if (userMarker) {
+                userMarker.setLatLng([userLat, userLng]);
+            } else {
+                userMarker = L.marker([userLat, userLng], {
+                    icon: L.divIcon({
+                        className: 'user-location',
+                        html: '<i class="fas fa-user-circle"></i>'
+                    })
+                }).addTo(map);
+            }
+
+            // Center map on user
+            map.setView([userLat, userLng], 12);
+
+            // Load services near user location
+            loadServices(userLat, userLng);
+        });
+    }
+}
+
+function loadServices(lat, lng) {
+    fetch('/api/services?lat=' + lat + '&lng=' + lng)
+        .then(response => response.json())
+        .then(data => {
+            if (data.services) {
+                // Clear existing markers
+                markers.forEach(marker => marker.remove());
+                markers = [];
+
+                // Add service markers
+                data.services.forEach(service => {
+                    const marker = L.marker([service.latitude, service.longitude])
+                        .bindPopup(`
+                            <h5>${service.name}</h5>
+                            <p>${service.address}</p>
+                            ${service.phone_number ? `<p>📞 ${service.phone_number}</p>` : ''}
+                            ${service.opening_hours ? `<p>⏰ ${service.opening_hours}</p>` : ''}
+                        `);
+                    marker.addTo(map);
+                    markers.push(marker);
+                });
+            } else {
+                console.log("No services data received");
+            }
+        })
+        .catch(err => {
+            console.log("Error loading services:", err);
+        });
+}
 
 /**
  * Get user's current location

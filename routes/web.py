@@ -140,7 +140,19 @@ def services_map():
 def get_services():
     """API endpoint to get all services for map"""
     try:
-        services = GovernmentService.query.all()
+        lat = request.args.get('lat', type=float)
+        lng = request.args.get('lng', type=float)
+        
+        if lat and lng:
+            # Get services near the user's location
+            services = GovernmentService.query.order_by(
+                GovernmentService.location.distance_centroid(
+                    'POINT({} {})'.format(lng, lat)
+                )
+            ).limit(10).all()
+        else:
+            # Get all services if no location provided
+            services = GovernmentService.query.all()
         
         # Format services for map display
         service_list = []
