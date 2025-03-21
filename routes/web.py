@@ -131,6 +131,14 @@ def send_chat_message():
         logger.error(f"Error in send_chat_message: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@web_bp.route('/webhooks')
+def show_webhooks():
+    """Display webhook URLs for configuration"""
+    return jsonify({
+        'sms_webhook_url': current_app.config['SMS_WEBHOOK_URL'],
+        'voice_webhook_url': current_app.config['VOICE_WEBHOOK_URL']
+    })
+
 @web_bp.route('/services')
 def services_map():
     """Map view of government services"""

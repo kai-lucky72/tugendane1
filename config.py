@@ -19,9 +19,13 @@ class Config:
     AT_COUNTRY_CODE = '+250'  # Rwanda country code
     
     # Webhook configuration
-    BASE_URL = os.environ.get('BASE_URL', 'https://tugendane.yourdomain.repl.co')
+    BASE_URL = os.environ.get('BASE_URL', f'https://{os.environ.get("REPL_SLUG")}.{os.environ.get("REPL_OWNER")}.repl.co')
     SMS_WEBHOOK_PATH = '/api/sms/receive'
     VOICE_WEBHOOK_PATH = '/api/voice/receive'
+    
+    # Full webhook URLs
+    SMS_WEBHOOK_URL = f'{BASE_URL}{SMS_WEBHOOK_PATH}'
+    VOICE_WEBHOOK_URL = f'{BASE_URL}{VOICE_WEBHOOK_PATH}'
 
     # OpenAI configuration for LLM
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'your-openai-key')
