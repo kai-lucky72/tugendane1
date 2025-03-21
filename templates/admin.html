@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Tugendane{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Admin Dashboard</h1>
+            <p class="lead">Monitor and analyze Tugendane system usage</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center dashboard-card">
+                <div class="card-body">
+                    <div class="display-4 text-primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <p class="dashboard-stat">{{ user_count }}</p>
+                    <h5 class="card-title mt-2">Users</h5>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center dashboard-card">
+                <div class="card-body">
+                    <div class="display-4 text-success">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <p class="dashboard-stat">{{ conversation_count }}</p>
+                    <h5 class="card-title mt-2">Conversations</h5>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center dashboard-card">
+                <div class="card-body">
+                    <div class="display-4 text-warning">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <p class="dashboard-stat">{{ service_count }}</p>
+                    <h5 class="card-title mt-2">Services</h5>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center dashboard-card">
+                <div class="card-body">
+                    <div class="display-4 text-info">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <p class="dashboard-stat">{{ interaction_count }}</p>
+                    <h5 class="card-title mt-2">Interactions</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Conversations -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recent Conversations</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_conversations %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Phone Number</th>
+                                    <th>Channel</th>
+                                    <th>Status</th>
+                                    <th>Last Activity</th>
+                                    <th>Last Message</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for conversation, user in recent_conversations %}
+                                <tr>
+                                    <td>{{ user.phone_number }}</td>
+                                    <td>
+                                        {% if conversation.channel == 'sms' %}
+                                        <span class="badge bg-primary">SMS</span>
+                                        {% elif conversation.channel == 'voice' %}
+                                        <span class="badge bg-success">Voice</span>
+                                        {% else %}
+                                        <span class="badge bg-info">Web</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="conversation-status status-{{ conversation.status }}"></span>
+                                        {{ conversation.status }}
+                                    </td>
+                                    <td>{{ conversation.last_message_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td class="conversation-preview">
+                                        {% if conversation.messages and conversation.messages[0] %}
+                                            {{ conversation.messages[0].content }}
+                                        {% else %}
+                                            <em>No messages</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('web.view_conversation', conversation_id=conversation.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        No recent conversations found.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Popular Services -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i> Most Used Services</h5>
+                </div>
+                <div class="card-body">
+                    {% if service_usage %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Category</th>
+                                    <th>Usage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for name, category, count in service_usage %}
+                                <tr>
+                                    <td>{{ name }}</td>
+                                    <td>
+                                        <span class="badge 
+                                        {% if category == 'health' %}bg-danger
+                                        {% elif category == 'education' %}bg-success
+                                        {% elif category == 'administration' %}bg-warning
+                                        {% elif category == 'identification' %}bg-primary
+                                        {% elif category == 'taxation' %}bg-info
+                                        {% elif category == 'security' %}bg-secondary
+                                        {% else %}bg-dark{% endif %}">
+                                            {{ category }}
+                                        </span>
+                                    </td>
+                                    <td>{{ count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        No service usage data found.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-server me-2"></i> System Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="fas fa-database fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Database</h6>
+                                    <p class="mb-0 text-success">Connected</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="fas fa-sms fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">SMS Service</h6>
+                                    <p class="mb-0 text-success">Active</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="fas fa-phone fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Voice Service</h6>
+                                    <p class="mb-0 text-success">Active</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

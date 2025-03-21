@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Conversation Details - Tugendane{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('web.admin') }}">Admin Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Conversation Detail</li>
+                </ol>
+            </nav>
+            
+            <h1>Conversation Details</h1>
+            <p class="lead">Viewing conversation history and analyzing user interactions</p>
+        </div>
+    </div>
+
+    <!-- Conversation Info -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> Conversation Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">ID:</dt>
+                        <dd class="col-sm-8">{{ conversation.id }}</dd>
+                        
+                        <dt class="col-sm-4">Channel:</dt>
+                        <dd class="col-sm-8">
+                            {% if conversation.channel == 'sms' %}
+                            <span class="badge bg-primary">SMS</span>
+                            {% elif conversation.channel == 'voice' %}
+                            <span class="badge bg-success">Voice</span>
+                            {% else %}
+                            <span class="badge bg-info">Web</span>
+                            {% endif %}
+                        </dd>
+                        
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            <span class="conversation-status status-{{ conversation.status }}"></span>
+                            {{ conversation.status }}
+                        </dd>
+                        
+                        <dt class="col-sm-4">Current State:</dt>
+                        <dd class="col-sm-8">{{ conversation.current_state }}</dd>
+                        
+                        <dt class="col-sm-4">Created:</dt>
+                        <dd class="col-sm-8">{{ conversation.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</dd>
+                        
+                        <dt class="col-sm-4">Last Activity:</dt>
+                        <dd class="col-sm-8">{{ conversation.last_message_at.strftime('%Y-%m-%d %H:%M:%S') }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i> User Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">ID:</dt>
+                        <dd class="col-sm-8">{{ user.id }}</dd>
+                        
+                        <dt class="col-sm-4">Phone Number:</dt>
+                        <dd class="col-sm-8">{{ user.phone_number }}</dd>
+                        
+                        <dt class="col-sm-4">Language:</dt>
+                        <dd class="col-sm-8">
+                            {% if user.language_preference == 'en' %}
+                            English
+                            {% elif user.language_preference == 'rw' %}
+                            Kinyarwanda
+                            {% else %}
+                            {{ user.language_preference }}
+                            {% endif %}
+                        </dd>
+                        
+                        <dt class="col-sm-4">Last Location:</dt>
+                        <dd class="col-sm-8">
+                            {% if user.last_latitude and user.last_longitude %}
+                            {{ user.last_latitude }}, {{ user.last_longitude }}
+                            <a href="https://www.openstreetmap.org/?mlat={{ user.last_latitude }}&mlon={{ user.last_longitude }}&zoom=15" target="_blank" class="ms-2">
+                                <i class="fas fa-map-marker-alt"></i> View
+                            </a>
+                            {% else %}
+                            <em>No location data</em>
+                            {% endif %}
+                        </dd>
+                        
+                        <dt class="col-sm-4">Created:</dt>
+                        <dd class="col-sm-8">{{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message History -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i> Message History</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if messages %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Sender</th>
+                                    <th>Type</th>
+                                    <th>Content</th>
+                                    <th>Intent</th>
+                                    <th>Entities</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for message in messages %}
+                                <tr>
+                                    <td>{{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>
+                                        {% if message.sender_type == 'user' %}
+                                        <span class="badge bg-primary">User</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">System</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if message.message_type == 'sms' %}
+                                        <i class="fas fa-sms" data-bs-toggle="tooltip" title="SMS"></i>
+                                        {% elif message.message_type == 'voice' %}
+                                        <i class="fas fa-phone" data-bs-toggle="tooltip" title="Voice"></i>
+                                        {% else %}
+                                        <i class="fas fa-globe" data-bs-toggle="tooltip" title="Web"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ message.content }}</td>
+                                    <td>
+                                        {% if message.intent %}
+                                        <span class="badge bg-info">{{ message.intent }}</span>
+                                        {% else %}
+                                        <em>None</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if message.entities %}
+                                        <button class="btn btn-sm btn-outline-secondary" 
+                                                data-bs-toggle="popover" 
+                                                data-bs-placement="left" 
+                                                data-bs-trigger="focus" 
+                                                title="Entities" 
+                                                data-bs-content="{{ message.entities }}">
+                                            <i class="fas fa-list"></i> View
+                                        </button>
+                                        {% else %}
+                                        <em>None</em>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info m-3">
+                        No messages found for this conversation.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Data -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-database me-2"></i> Conversation Context</h5>
+                </div>
+                <div class="card-body">
+                    {% if conversation.context %}
+                    <pre class="bg-dark text-light p-3 rounded"><code>{{ conversation.context }}</code></pre>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        No context data available for this conversation.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('web.admin') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+                </a>
+                
+                <!-- Additional action buttons could go here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

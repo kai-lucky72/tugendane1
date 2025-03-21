@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Tugendane - Rwanda Government Services{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row align-items-center py-5">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold">Tugendane</h1>
+            <h2 class="text-muted">Find Government Services Near You</h2>
+            <p class="lead mt-3">
+                Access Rwanda government services easily via SMS, voice calls, or web interface.
+                Get directions, service hours, and required documents - even in low connectivity areas.
+            </p>
+            <div class="d-flex gap-3 mt-4">
+                <a href="{{ url_for('web.chat') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-comments me-2"></i> Try Web Chat
+                </a>
+                <a href="{{ url_for('web.services_map') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-map-marker-alt me-2"></i> View Services Map
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-6 mt-4 mt-lg-0 text-center">
+            <!-- SVG Illustration -->
+            <svg class="img-fluid" width="500" height="400" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+                <rect x="100" y="100" width="300" height="200" rx="10" fill="#444" stroke="#666" stroke-width="5"/>
+                <circle cx="250" cy="200" r="70" fill="#6c757d"/>
+                <path d="M250 140 L250 200 L290 220" stroke="#fff" stroke-width="5" fill="none"/>
+                <rect x="140" y="260" width="220" height="20" rx="5" fill="#198754"/>
+                <path d="M120 320 L380 320" stroke="#6c757d" stroke-width="15" stroke-linecap="round" stroke-dasharray="15,20"/>
+                <circle cx="120" cy="320" r="20" fill="#0d6efd"/>
+                <circle cx="380" cy="320" r="20" fill="#dc3545"/>
+                <path d="M170 80 C 250 10, 350 110, 410 80" stroke="#6c757d" stroke-width="3" fill="none"/>
+                <circle cx="410" cy="80" r="10" fill="#0dcaf0"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <div class="row py-5">
+        <div class="col-12 text-center mb-4">
+            <h2>How It Works</h2>
+            <p class="text-muted">Connect with government services in Rwanda through multiple channels</p>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-sms fa-3x text-primary"></i>
+                    </div>
+                    <h4>SMS</h4>
+                    <p class="text-muted">
+                        Send an SMS with your request to our shortcode. Works in areas with
+                        limited internet connectivity.
+                    </p>
+                    <div class="bg-dark p-3 rounded-3 mt-3">
+                        <code>Find health clinic near Kigali</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-phone-alt fa-3x text-success"></i>
+                    </div>
+                    <h4>Voice Calls</h4>
+                    <p class="text-muted">
+                        Call our number and speak your request. Perfect for those who prefer 
+                        talking or have difficulty with text.
+                    </p>
+                    <div class="bg-dark p-3 rounded-3 mt-3">
+                        <code>"I need directions to the immigration office"</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-globe fa-3x text-info"></i>
+                    </div>
+                    <h4>Web Interface</h4>
+                    <p class="text-muted">
+                        Use our web interface to chat with the system. Includes maps and
+                        visual directions.
+                    </p>
+                    <div class="bg-dark p-3 rounded-3 mt-3">
+                        <code>Required documents for passport application</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services -->
+    <div class="row py-5">
+        <div class="col-12 text-center mb-4">
+            <h2>Government Services</h2>
+            <p class="text-muted">Find information about various government services</p>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-hospital fa-3x text-danger mb-3"></i>
+                    <h5>Healthcare</h5>
+                    <p class="small text-muted">Find nearby health centers, hospitals and clinics</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-id-card fa-3x text-primary mb-3"></i>
+                    <h5>Identification</h5>
+                    <p class="small text-muted">Passport, ID cards, and birth certificates</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-university fa-3x text-warning mb-3"></i>
+                    <h5>Administration</h5>
+                    <p class="small text-muted">District offices, sector offices, and ministries</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-graduation-cap fa-3x text-success mb-3"></i>
+                    <h5>Education</h5>
+                    <p class="small text-muted">Schools, universities, and libraries</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Languages -->
+    <div class="row py-5">
+        <div class="col-12 text-center mb-4">
+            <h2>Language Support</h2>
+            <p class="text-muted">Communicate in your preferred language</p>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center p-4">
+                    <div class="me-4">
+                        <span class="display-4">🇷🇼</span>
+                    </div>
+                    <div>
+                        <h4>Kinyarwanda</h4>
+                        <p class="mb-2">Tugendane ishobora kugufasha mu Kinyarwanda.</p>
+                        <p class="text-muted mb-0"><small>Tugendane can help you in Kinyarwanda.</small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center p-4">
+                    <div class="me-4">
+                        <span class="display-4">🇬🇧</span>
+                    </div>
+                    <div>
+                        <h4>English</h4>
+                        <p class="mb-2">Tugendane can help you in English.</p>
+                        <p class="text-muted mb-0"><small>Tugendane ishobora kugufasha mu Cyongereza.</small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="row py-5">
+        <div class="col-12">
+            <div class="card border-0 bg-dark text-light p-5 text-center">
+                <h2>Start Using Tugendane Today</h2>
+                <p class="lead">Find the government services you need, when you need them</p>
+                <div class="mt-4">
+                    <a href="{{ url_for('web.chat') }}" class="btn btn-primary btn-lg me-2">
+                        <i class="fas fa-comments me-2"></i> Try Web Chat
+                    </a>
+                    <p class="mt-3 mb-0">
+                        <strong>SMS:</strong> Send your request to our shortcode<br>
+                        <strong>Voice:</strong> Call our number to speak with the system
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
