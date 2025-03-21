@@ -138,10 +138,8 @@ def import_sample_services():
         for service_data in sample_services:
             # Create PostGIS POINT from coordinates
             location = WKTElement(f"POINT({service_data['longitude']} {service_data['latitude']})", srid=4326)
-
-            # Remove latitude and longitude from the dictionary
-            latitude = service_data.pop('latitude')
-            longitude = service_data.pop('longitude')
+            service_data.pop('latitude')
+            service_data.pop('longitude')
 
             # Create the service object
             service = GovernmentService(
