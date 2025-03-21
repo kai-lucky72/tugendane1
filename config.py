@@ -10,6 +10,9 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_recycle": 300,
     }
+    # Enable SQLite extensions for spatial support
+    SQLALCHEMY_ENGINE_OPTIONS['connect_args'] = {'detect_types': sqlite3.PARSE_DECLTYPES}
+    SQLALCHEMY_ENGINE_OPTIONS['creator'] = lambda: sqlite3.connect('instance/tugendane.db', uri=True)
 
     # Africa's Talking API configuration for Rwanda
     AT_USERNAME = os.environ.get('AT_USERNAME', 'sandbox')
