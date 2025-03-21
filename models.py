@@ -36,18 +36,6 @@ class GovernmentService(db.Model):
     def __repr__(self):
         return f"<GovernmentService {self.name} ({self.category})>"
 
-    @property
-    def latitude(self):
-        """Extract latitude from the geometry point"""
-        #This will need to be updated once the location column is fixed
-        return None
-
-    @property
-    def longitude(self):
-        """Extract longitude from the geometry point"""
-        #This will need to be updated once the location column is fixed
-        return None
-
 # Create spatial index on location column
 #Index('idx_government_services_location', GovernmentService.location, postgresql_using='gist')
 

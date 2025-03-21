@@ -20,9 +20,10 @@ class Config:
     # Africa's Talking API configuration for Rwanda
     AT_USERNAME = os.environ.get('AT_USERNAME', 'sandbox')
     AT_API_KEY = os.environ.get('AT_API_KEY')
-    AT_SHORTCODE = os.environ.get('AT_SHORTCODE', '12345')
+    AT_SHORTCODE = os.environ.get('AT_SHORTCODE', '635')
     AT_SENDER_ID = os.environ.get('AT_SENDER_ID', 'TUGENDANE')  # For alphanumeric sender ID
     AT_COUNTRY_CODE = '+250'  # Rwanda country code
+    AT_TEST_PHONE = '+250788520617'  # Test phone number
 
     # Webhook configuration
     BASE_URL = os.environ.get('BASE_URL', f'https://{os.environ.get("REPL_SLUG")}.{os.environ.get("REPL_OWNER")}.repl.co')
