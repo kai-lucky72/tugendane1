@@ -11,9 +11,10 @@ dependencies = [
     "gunicorn>=23.0.0",
     "psycopg2-binary>=2.9.10",
     "sqlalchemy>=2.0.39",
-    "spacy>=3.8.4",
     "geoalchemy2>=0.17.1",
     "africastalking>=1.2.9",
     "celery>=5.4.0",
     "redis>=5.2.1",
+    "twilio>=9.5.1",
+    "numpy==1.22.0",
 ]

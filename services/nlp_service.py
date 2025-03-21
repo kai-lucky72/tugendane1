@@ -1,5 +1,4 @@
 import logging
-import spacy
 import json
 import re
 from collections import defaultdict
@@ -14,7 +13,6 @@ class NLPService:
     
     def __init__(self, app=None):
         self.app = app
-        self.nlp_models = {}
         self.intent_patterns = self._define_intent_patterns()
         
         if app:
@@ -23,20 +21,7 @@ class NLPService:
     def init_app(self, app):
         """Initialize with Flask app context"""
         self.app = app
-        
-        # Load spaCy models for supported languages
-        try:
-            # Load English model
-            self.nlp_models['en'] = spacy.load('en_core_web_sm')
-            logger.info("Loaded English NLP model")
-            
-            # We'd load Kinyarwanda model here if available
-            # For prototype, we'll use English model for all languages
-            self.nlp_models['rw'] = self.nlp_models['en']
-            logger.info("Using English model for Kinyarwanda (placeholder)")
-            
-        except Exception as e:
-            logger.error(f"Error loading NLP models: {e}")
+        logger.info("Initialized NLP service with keyword-based extraction")
     
     def _define_intent_patterns(self):
         """Define regex patterns for intent recognition"""
@@ -122,24 +107,10 @@ class NLPService:
         return "general_inquiry"
     
     def extract_entities(self, text, language='en'):
-        """Extract named entities from text"""
-        if language not in self.nlp_models:
-            language = 'en'  # Fallback to English
-        
-        nlp = self.nlp_models[language]
-        doc = nlp(text)
-        
+        """Extract named entities from text using keyword-based approaches"""
         entities = {}
-        
-        # Extract entities from spaCy
-        for ent in doc.ents:
-            entity_type = ent.label_
-            entity_value = ent.text
-            
-            if entity_type not in entities:
-                entities[entity_type] = []
-                
-            entities[entity_type].append(entity_value)
+        text_lower = text.lower()
+        words = text.split()
         
         # Extract service types using keywords
         service_keywords = {
@@ -151,8 +122,6 @@ class NLPService:
         }
         
         service_types = []
-        text_lower = text.lower()
-        
         for service_type, keywords in service_keywords.items():
             for keyword in keywords:
                 if keyword.lower() in text_lower:
@@ -162,6 +131,48 @@ class NLPService:
         if service_types:
             entities['SERVICE_TYPE'] = service_types
         
+        # Simple location extraction
+        location_keywords = ['in', 'at', 'near', 'around', 'by']
+        for i, word in enumerate(words):
+            if word.lower() in location_keywords and i < len(words) - 1:
+                potential_location = words[i+1]
+                if potential_location not in ['the', 'a', 'an'] and len(potential_location) > 2:
+                    entities['LOC'] = [potential_location]
+                    break
+        
+        # Person extraction - simple name detection
+        person_prefixes = ['mr', 'mrs', 'ms', 'dr', 'prof']
+        for i, word in enumerate(words):
+            if i < len(words) - 1 and word.lower().rstrip('.') in person_prefixes:
+                potential_name = words[i+1]
+                if len(potential_name) > 1 and potential_name[0].isupper():
+                    entities['PERSON'] = [f"{word} {potential_name}"]
+                    break
+        
+        # Organization extraction - detect capital words followed by common org suffixes
+        org_suffixes = ['ministry', 'department', 'office', 'agency', 'authority', 'center', 'commission']
+        for suffix in org_suffixes:
+            pattern = re.compile(r'\b([A-Z][a-z]+ )+' + suffix + r'\b', re.IGNORECASE)
+            matches = pattern.findall(text)
+            if matches:
+                entities['ORG'] = matches
+                break
+        
+        # Date extraction - simple pattern for dates
+        date_patterns = [
+            r'\b\d{1,2}/\d{1,2}/\d{2,4}\b',  # DD/MM/YYYY or MM/DD/YYYY
+            r'\b\d{1,2}-\d{1,2}-\d{2,4}\b',  # DD-MM-YYYY or MM-DD-YYYY
+            r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2}(?:st|nd|rd|th)?,? \d{4}\b'  # Month DD, YYYY
+        ]
+        
+        date_matches = []
+        for pattern in date_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            date_matches.extend(matches)
+        
+        if date_matches:
+            entities['DATE'] = date_matches
+            
         return entities
     
     def process_message(self, message_id):
