@@ -146,192 +146,180 @@ function initializeServicesMap() {
         setTimeout(initializeServicesMap, 500);
         return;
     }
-
-    function loadMap() {
-        // Initialize map centered on Rwanda
-        const map = L.map('services-map').setView([-1.9403, 30.0596], 12);
-        
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        
-        // Initialize markers for different service types
-        const markers = {
-            health: [],
-            education: [],
-            administration: [],
-            identification: [],
-            taxation: [],
-            security: [],
-            social: []
-        };
-        
-        // Custom icons for different service types
-        const icons = {
-            health: L.divIcon({
-                html: '<i class="fas fa-hospital text-danger fa-2x"></i>',
-                className: 'custom-div-icon',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            }),
-            education: L.divIcon({
-                html: '<i class="fas fa-graduation-cap text-success fa-2x"></i>',
-                className: 'custom-div-icon',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            }),
-            administration: L.divIcon({
-                html: '<i class="fas fa-university text-warning fa-2x"></i>',
-                className: 'custom-div-icon',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            }),
-            identification: L.divIcon({
-                html: '<i class="fas fa-id-card text-primary fa-2x"></i>',
-                className: 'custom-div-icon',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            }),
-            taxation: L.divIcon({
-                html: '<i class="fas fa-money-bill text-success fa-2x"></i>',
-                className: 'custom-div-icon',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            }),
-            security: L.divIcon({
-                html: '<i class="fas fa-shield-alt text-info fa-2x"></i>',
-                className: 'custom-div-icon',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            }),
-            social: L.divIcon({
-                html: '<i class="fas fa-hands-helping text-secondary fa-2x"></i>',
-                className: 'custom-div-icon',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            }),
-            default: L.divIcon({
-                html: '<i class="fas fa-building text-primary fa-2x"></i>',
-                className: 'custom-div-icon',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            })
-        };
-        
-        // Fetch service data
-        fetch('/api/services')
-            .then(response => response.json())
-            .then(data => {
-                // Create markers for each service
-                data.services.forEach(service => {
-                    // Use appropriate icon based on category
-                    const icon = icons[service.category] || icons.default;
-                    
-                    // Create marker
-                    const marker = L.marker([service.latitude, service.longitude], {
-                        icon: icon
-                    });
-                    
-                    // Create popup content
-                    let popupContent = `
-                        <div class="service-popup">
-                            <h5>${service.name}</h5>
-                            <p><strong>Category:</strong> ${service.category}</p>
-                            <p><strong>Address:</strong> ${service.address}</p>
-                    `;
-                    
-                    if (service.phone_number) {
-                        popupContent += `<p><strong>Phone:</strong> ${service.phone_number}</p>`;
-                    }
-                    
-                    if (service.opening_hours) {
-                        popupContent += `<p><strong>Hours:</strong> ${service.opening_hours}</p>`;
-                    }
-                    
-                    popupContent += `</div>`;
-                    
-                    // Add popup to marker
-                    marker.bindPopup(popupContent);
-                    
-                    // Add marker to appropriate category
-                    if (markers[service.category]) {
-                        markers[service.category].push(marker);
-                    } else {
-                        markers.default = markers.default || [];
-                        markers.default.push(marker);
-                    }
-                });
-                
-                // Create layer groups for each category
-                const layers = {};
-                Object.keys(markers).forEach(category => {
-                    if (markers[category].length > 0) {
-                        layers[`${category.charAt(0).toUpperCase() + category.slice(1)} Services`] = L.layerGroup(markers[category]);
-                    }
-                });
-                
-                // Add all markers to map initially
-                Object.values(layers).forEach(layer => layer.addTo(map));
-                
-                // Add layer control
-                L.control.layers(null, layers, {collapsed: false}).addTo(map);
-                
-                // Add search control
-                const searchControl = document.getElementById('map-search');
-                if (searchControl) {
-                    const searchInput = searchControl.querySelector('input');
-                    const searchButton = searchControl.querySelector('button');
-                    
-                    searchButton.addEventListener('click', function() {
-                        searchServices(searchInput.value);
-                    });
-                    
-                    searchInput.addEventListener('keypress', function(e) {
-                        if (e.key === 'Enter') {
-                            searchServices(searchInput.value);
-                        }
-                    });
-                    
-                    function searchServices(query) {
-                        if (!query) return;
-                        
-                        query = query.toLowerCase();
-                        let found = false;
-                        
-                        // Search through all services
-                        data.services.forEach(service => {
-                            if (service.name.toLowerCase().includes(query) || 
-                                service.category.toLowerCase().includes(query) ||
-                                service.address.toLowerCase().includes(query)) {
-                                // Center map on this service
-                                map.setView([service.latitude, service.longitude], 15);
-                                
-                                // Find and open the popup for this marker
-                                Object.values(markers).forEach(categoryMarkers => {
-                                    categoryMarkers.forEach(marker => {
-                                        const latLng = marker.getLatLng();
-                                        if (latLng.lat === service.latitude && latLng.lng === service.longitude) {
-                                            marker.openPopup();
-                                            found = true;
-                                        }
-                                    });
-                                });
-                            }
-                        });
-                        
-                        if (!found) {
-                            alert('No services found matching your search');
-                        }
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error loading services:', error);
-                document.getElementById('services-map').innerHTML = '<div class="alert alert-danger">Error loading services. Please try again later.</div>';
-            });
-    }
 }
+
+function loadMap() {
+    // Initialize map centered on Rwanda
+    const map = L.map('services-map').setView([-1.9403, 30.0596], 12);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Initialize markers for different service types
+    const markers = {
+        health: [],
+        education: [],
+        administration: [],
+        identification: [],
+        taxation: [],
+        security: [],
+        social: []
+    };
+
+    // Custom icons for different service types
+    const icons = {
+        health: L.divIcon({
+            html: '<i class="fas fa-hospital text-danger fa-2x"></i>',
+            className: 'custom-div-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        }),
+        education: L.divIcon({
+            html: '<i class="fas fa-graduation-cap text-success fa-2x"></i>',
+            className: 'custom-div-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        }),
+        administration: L.divIcon({
+            html: '<i class="fas fa-university text-warning fa-2x"></i>',
+            className: 'custom-div-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        }),
+        identification: L.divIcon({
+            html: '<i class="fas fa-id-card text-primary fa-2x"></i>',
+            className: 'custom-div-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        }),
+        taxation: L.divIcon({
+            html: '<i class="fas fa-money-bill text-success fa-2x"></i>',
+            className: 'custom-div-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        }),
+        security: L.divIcon({
+            html: '<i class="fas fa-shield-alt text-info fa-2x"></i>',
+            className: 'custom-div-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        }),
+        social: L.divIcon({
+            html: '<i class="fas fa-hands-helping text-secondary fa-2x"></i>',
+            className: 'custom-div-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        }),
+        default: L.divIcon({
+            html: '<i class="fas fa-building text-primary fa-2x"></i>',
+            className: 'custom-div-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        })
+    };
+
+    // Fetch service data
+    fetch('/api/services')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.services || !Array.isArray(data.services)) {
+                throw new Error('Invalid data format');
+            }
+
+            // Create markers for each service
+            data.services.forEach(service => {
+                if (!service.latitude || !service.longitude) return;
+
+                const icon = icons[service.category] || icons.default;
+                const marker = L.marker([service.latitude, service.longitude], {icon: icon});
+
+                // Create popup content
+                const popupContent = `
+                    <div class="service-popup">
+                        <h5>${service.name}</h5>
+                        <p><i class="fas fa-map-marker-alt"></i> ${service.address}</p>
+                        ${service.phone_number ? `<p><i class="fas fa-phone"></i> ${service.phone_number}</p>` : ''}
+                        ${service.opening_hours ? `<p><i class="fas fa-clock"></i> ${service.opening_hours}</p>` : ''}
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+
+                // Add to category group
+                if (service.category && markers[service.category]) {
+                    markers[service.category].push(marker);
+                } else {
+                    markers.default = markers.default || [];
+                    markers.default.push(marker);
+                }
+            });
+
+            // Create layer groups for each category
+            const layers = {};
+            Object.keys(markers).forEach(category => {
+                if (markers[category].length > 0) {
+                    layers[`${category.charAt(0).toUpperCase() + category.slice(1)} Services`] = L.layerGroup(markers[category]);
+                }
+            });
+
+            // Add all markers to map initially
+            Object.values(layers).forEach(layer => layer.addTo(map));
+
+            // Add layer control
+            L.control.layers(null, layers, {collapsed: false}).addTo(map);
+
+            // Add search control
+            const searchControl = document.getElementById('map-search');
+            if (searchControl) {
+                const searchInput = searchControl.querySelector('input');
+                const searchButton = searchControl.querySelector('button');
+
+                const searchServices = (query) => {
+                    query = query.toLowerCase();
+                    let found = false;
+
+                    Object.values(markers).flat().forEach(marker => {
+                        const popup = marker.getPopup();
+                        const content = popup.getContent().toLowerCase();
+
+                        if (content.includes(query)) {
+                            marker.openPopup();
+                            map.setView(marker.getLatLng(), 15);
+                            found = true;
+                        }
+                    });
+
+                    if (!found) {
+                        alert('No services found matching your search');
+                    }
+                };
+
+                searchButton.addEventListener('click', () => {
+                    searchServices(searchInput.value);
+                });
+
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        searchServices(searchInput.value);
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading services:', error);
+            document.getElementById('services-map').innerHTML = '<div class="alert alert-danger">Error loading services. Please try again later.</div>';
+        });
+}
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', initializeServicesMap);
 
 /**
  * Get user's current location
