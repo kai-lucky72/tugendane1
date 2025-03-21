@@ -34,6 +34,12 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     
+    # Initialize OpenRouter API client
+    if app.config['OPENROUTER_API_KEY']:
+        import openai
+        openai.api_key = app.config['OPENROUTER_API_KEY']
+        openai.api_base = "https://openrouter.ai/api/v1"
+    
     # Configure Celery
     celery.conf.update(app.config)
     

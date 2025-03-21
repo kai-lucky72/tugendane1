@@ -136,7 +136,7 @@ def import_sample_services():
 
         # Add services to the database
         for service_data in sample_services:
-            # Create PostGIS POINT from coordinates
+            # Create PostGIS POINT from coordinates - corrected coordinate order
             location = WKTElement(f"POINT({service_data['longitude']} {service_data['latitude']})", srid=4326)
             service_data.pop('latitude')
             service_data.pop('longitude')
