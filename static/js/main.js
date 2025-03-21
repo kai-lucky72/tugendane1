@@ -25,7 +25,110 @@ document.addEventListener('DOMContentLoaded', function() {
     // Services map
     const servicesMap = document.getElementById('services-map');
     if (servicesMap) {
-        initializeServicesMap();
+        // Initialize map when document is ready
+        // Initialize map centered on Rwanda
+        const map = L.map('services-map').setView([-1.9403, 30.0596], 12);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Initialize markers for different service types
+        const markers = {
+            health: [],
+            education: [],
+            administration: [],
+            identification: [],
+            taxation: [],
+            security: [],
+            social: [],
+            default: []
+        };
+
+        // Fetch services from API
+        fetch('/api/services')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.services) {
+                    console.error("No services data received");
+                    return;
+                }
+
+                data.services.forEach(service => {
+                    const marker = L.marker([service.latitude, service.longitude])
+                        .bindPopup(`
+                            <strong>${service.name}</strong><br>
+                            Category: ${service.category}<br>
+                            Address: ${service.address}<br>
+                            ${service.phone_number ? `Phone: ${service.phone_number}<br>` : ''}
+                            ${service.opening_hours ? `Hours: ${service.opening_hours}` : ''}
+                        `);
+
+                    // Add to category group
+                    if (service.category && markers[service.category]) {
+                        markers[service.category].push(marker);
+                    } else {
+                        markers.default.push(marker);
+                    }
+                });
+
+                // Create layer groups for each category
+                const layers = {};
+                Object.keys(markers).forEach(category => {
+                    if (markers[category].length > 0) {
+                        layers[`${category.charAt(0).toUpperCase() + category.slice(1)} Services`] = L.layerGroup(markers[category]);
+                    }
+                });
+
+                // Add all markers to map initially
+                Object.values(layers).forEach(layer => layer.addTo(map));
+
+                // Add layer control
+                L.control.layers(null, layers, {collapsed: false}).addTo(map);
+            })
+            .catch(error => {
+                console.error("Error loading services:", error);
+            });
+
+        // Add search functionality
+        const searchControl = document.getElementById('map-search');
+        if (searchControl) {
+            const searchInput = searchControl.querySelector('input');
+            const searchButton = searchControl.querySelector('button');
+
+            const searchServices = (query) => {
+                query = query.toLowerCase();
+                let found = false;
+
+                Object.values(markers).flat().forEach(marker => {
+                    const popup = marker.getPopup();
+                    const content = popup.getContent().toLowerCase();
+
+                    if (content.includes(query)) {
+                        marker.openPopup();
+                        map.setView(marker.getLatLng(), 15);
+                        found = true;
+                    }
+                });
+
+                return found;
+            };
+
+            searchButton.addEventListener('click', () => {
+                if (!searchServices(searchInput.value)) {
+                    alert('No services found matching your search.');
+                }
+            });
+
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    if (!searchServices(searchInput.value)) {
+                        alert('No services found matching your search.');
+                    }
+                }
+            });
+        }
     }
 });
 
@@ -37,27 +140,27 @@ function initializeChat() {
     const messageInput = document.getElementById('message-input');
     const chatMessages = document.getElementById('chat-messages');
     const userIdInput = document.getElementById('user-id');
-    
+
     chatForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         const message = messageInput.value.trim();
         if (message === '') return;
-        
+
         // Add user message to the chat window
         appendMessage('user', message);
-        
+
         // Clear input
         messageInput.value = '';
-        
+
         // Show loading indicator
         appendMessage('system loading', 'Thinking...');
-        
+
         // Send to server
         const formData = new FormData();
         formData.append('message', message);
         formData.append('user_id', userIdInput.value);
-        
+
         fetch('/chat/send', {
             method: 'POST',
             body: formData
@@ -69,15 +172,15 @@ function initializeChat() {
             if (loadingMsg) {
                 chatMessages.removeChild(loadingMsg);
             }
-            
+
             // Update user ID
             if (data.user_id) {
                 userIdInput.value = data.user_id;
             }
-            
+
             // Add response to chat
             appendMessage('system', data.response);
-            
+
             // Scroll to bottom
             chatMessages.scrollTop = chatMessages.scrollHeight;
         })
@@ -88,7 +191,7 @@ function initializeChat() {
             if (loadingMsg) {
                 chatMessages.removeChild(loadingMsg);
             }
-            
+
             // Show error message
             appendMessage('system error', 'Sorry, there was an error processing your request. Please try again.');
         });
@@ -98,10 +201,10 @@ function initializeChat() {
     function appendMessage(type, content) {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', type);
-        
+
         const iconDiv = document.createElement('div');
         iconDiv.classList.add('message-icon');
-        
+
         const icon = document.createElement('i');
         if (type === 'user') {
             icon.classList.add('fas', 'fa-user');
@@ -112,18 +215,18 @@ function initializeChat() {
         } else {
             icon.classList.add('fas', 'fa-robot');
         }
-        
+
         iconDiv.appendChild(icon);
-        
+
         const contentDiv = document.createElement('div');
         contentDiv.classList.add('message-content');
         contentDiv.textContent = content;
-        
+
         messageDiv.appendChild(iconDiv);
         messageDiv.appendChild(contentDiv);
-        
+
         chatMessages.appendChild(messageDiv);
-        
+
         // Scroll to bottom
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -134,192 +237,6 @@ function initializeChat() {
     }
 }
 
-/**
- * Initialize the services map
- */
-function initializeServicesMap() {
-    // Wait for OpenStreetMap script to load
-    if (typeof L !== 'undefined') {
-        loadMap();
-    } else {
-        // If Leaflet isn't loaded yet, wait and try again
-        setTimeout(initializeServicesMap, 500);
-        return;
-    }
-}
-
-function loadMap() {
-    // Initialize map centered on Rwanda
-    const map = L.map('services-map').setView([-1.9403, 30.0596], 12);
-
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
-    // Initialize markers for different service types
-    const markers = {
-        health: [],
-        education: [],
-        administration: [],
-        identification: [],
-        taxation: [],
-        security: [],
-        social: []
-    };
-
-    // Custom icons for different service types
-    const icons = {
-        health: L.divIcon({
-            html: '<i class="fas fa-hospital text-danger fa-2x"></i>',
-            className: 'custom-div-icon',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        }),
-        education: L.divIcon({
-            html: '<i class="fas fa-graduation-cap text-success fa-2x"></i>',
-            className: 'custom-div-icon',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        }),
-        administration: L.divIcon({
-            html: '<i class="fas fa-university text-warning fa-2x"></i>',
-            className: 'custom-div-icon',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        }),
-        identification: L.divIcon({
-            html: '<i class="fas fa-id-card text-primary fa-2x"></i>',
-            className: 'custom-div-icon',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        }),
-        taxation: L.divIcon({
-            html: '<i class="fas fa-money-bill text-success fa-2x"></i>',
-            className: 'custom-div-icon',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        }),
-        security: L.divIcon({
-            html: '<i class="fas fa-shield-alt text-info fa-2x"></i>',
-            className: 'custom-div-icon',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        }),
-        social: L.divIcon({
-            html: '<i class="fas fa-hands-helping text-secondary fa-2x"></i>',
-            className: 'custom-div-icon',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        }),
-        default: L.divIcon({
-            html: '<i class="fas fa-building text-primary fa-2x"></i>',
-            className: 'custom-div-icon',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        })
-    };
-
-    // Fetch service data
-    fetch('/api/services')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (!data.services || !Array.isArray(data.services)) {
-                throw new Error('Invalid data format');
-            }
-
-            // Create markers for each service
-            data.services.forEach(service => {
-                if (!service.latitude || !service.longitude) return;
-
-                const icon = icons[service.category] || icons.default;
-                const marker = L.marker([service.latitude, service.longitude], {icon: icon});
-
-                // Create popup content
-                const popupContent = `
-                    <div class="service-popup">
-                        <h5>${service.name}</h5>
-                        <p><i class="fas fa-map-marker-alt"></i> ${service.address}</p>
-                        ${service.phone_number ? `<p><i class="fas fa-phone"></i> ${service.phone_number}</p>` : ''}
-                        ${service.opening_hours ? `<p><i class="fas fa-clock"></i> ${service.opening_hours}</p>` : ''}
-                    </div>
-                `;
-
-                marker.bindPopup(popupContent);
-
-                // Add to category group
-                if (service.category && markers[service.category]) {
-                    markers[service.category].push(marker);
-                } else {
-                    markers.default = markers.default || [];
-                    markers.default.push(marker);
-                }
-            });
-
-            // Create layer groups for each category
-            const layers = {};
-            Object.keys(markers).forEach(category => {
-                if (markers[category].length > 0) {
-                    layers[`${category.charAt(0).toUpperCase() + category.slice(1)} Services`] = L.layerGroup(markers[category]);
-                }
-            });
-
-            // Add all markers to map initially
-            Object.values(layers).forEach(layer => layer.addTo(map));
-
-            // Add layer control
-            L.control.layers(null, layers, {collapsed: false}).addTo(map);
-
-            // Add search control
-            const searchControl = document.getElementById('map-search');
-            if (searchControl) {
-                const searchInput = searchControl.querySelector('input');
-                const searchButton = searchControl.querySelector('button');
-
-                const searchServices = (query) => {
-                    query = query.toLowerCase();
-                    let found = false;
-
-                    Object.values(markers).flat().forEach(marker => {
-                        const popup = marker.getPopup();
-                        const content = popup.getContent().toLowerCase();
-
-                        if (content.includes(query)) {
-                            marker.openPopup();
-                            map.setView(marker.getLatLng(), 15);
-                            found = true;
-                        }
-                    });
-
-                    if (!found) {
-                        alert('No services found matching your search');
-                    }
-                };
-
-                searchButton.addEventListener('click', () => {
-                    searchServices(searchInput.value);
-                });
-
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        searchServices(searchInput.value);
-                    }
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error loading services:', error);
-            document.getElementById('services-map').innerHTML = '<div class="alert alert-danger">Error loading services. Please try again later.</div>';
-        });
-}
-
-// Initialize map when page loads
-document.addEventListener('DOMContentLoaded', initializeServicesMap);
 
 /**
  * Get user's current location
@@ -329,7 +246,7 @@ function getCurrentLocation(callback) {
         alert('Geolocation is not supported by your browser');
         return;
     }
-    
+
     navigator.geolocation.getCurrentPosition(
         position => {
             callback({
