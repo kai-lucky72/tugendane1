@@ -142,6 +142,12 @@ def get_services():
     try:
         lat = request.args.get('lat', type=float)
         lng = request.args.get('lng', type=float)
+        radius = request.args.get('radius', default=10, type=float)  # 10km default radius
+        
+        if not lat or not lng:
+            # Default to Rwanda center
+            lat = -1.9403
+            lng = 29.8739
         
         if lat and lng:
             # Get services near the user's location

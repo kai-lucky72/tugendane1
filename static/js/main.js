@@ -135,102 +135,150 @@ function initializeChat() {
 }
 
 
-// Initialize map and markers
+// MapBox access token (using public token for demo)
+const mapboxToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+
 let map;
-let markers = [];
 let userMarker;
+let serviceMarkers = [];
 
 function initMap() {
-    // Center on Rwanda
-    const rwanda = [-1.9403, 29.8739];
+    if (map) {
+        map.remove();
+    }
 
-    map = L.map('services-map').setView(rwanda, 8);
+    // Initialize map centered on Rwanda
+    map = L.map('services-map').setView([-1.9403, 29.8739], 8);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+    // Use MapBox tiles for better detail
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
+        attribution: '© MapBox | © OpenStreetMap',
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1
     }).addTo(map);
 
-    // Get user's location
+    // Get user's location with high accuracy
     if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            const userLat = position.coords.latitude;
-            const userLng = position.coords.longitude;
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
 
-            // Add user marker
-            if (userMarker) {
-                userMarker.setLatLng([userLat, userLng]);
-            } else {
-                userMarker = L.marker([userLat, userLng], {
-                    icon: L.divIcon({
-                        className: 'user-location',
-                        html: '<i class="fas fa-user-circle"></i>'
-                    })
-                }).addTo(map);
+                // Add/update user marker
+                if (userMarker) {
+                    userMarker.setLatLng([userLat, userLng]);
+                } else {
+                    userMarker = L.marker([userLat, userLng], {
+                        icon: L.divIcon({
+                            className: 'user-location',
+                            html: '<i class="fas fa-user-circle fa-2x text-primary"></i>'
+                        })
+                    }).addTo(map);
+                }
+
+                // Add user popup
+                userMarker.bindPopup('Your Location').openPopup();
+
+                // Center map on user
+                map.setView([userLat, userLng], 13);
+
+                // Load services near user location
+                loadServices(userLat, userLng);
+            },
+            function(error) {
+                console.error("Error getting location:", error);
+                // Load default services for Rwanda if location fails
+                loadServices(-1.9403, 29.8739);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
             }
-
-            // Center map on user
-            map.setView([userLat, userLng], 12);
-
-            // Load services near user location
-            loadServices(userLat, userLng);
-        });
+        );
     }
 }
 
 function loadServices(lat, lng) {
-    fetch('/api/services?lat=' + lat + '&lng=' + lng)
+    // Clear existing markers
+    serviceMarkers.forEach(marker => marker.remove());
+    serviceMarkers = [];
+
+    fetch(`/api/services?lat=${lat}&lng=${lng}`)
         .then(response => response.json())
         .then(data => {
-            if (data.services) {
-                // Clear existing markers
-                markers.forEach(marker => marker.remove());
-                markers = [];
-
-                // Add service markers
+            if (data.services && data.services.length > 0) {
                 data.services.forEach(service => {
-                    const marker = L.marker([service.latitude, service.longitude])
-                        .bindPopup(`
+                    // Create marker for service
+                    const marker = L.marker([service.latitude, service.longitude], {
+                        icon: L.divIcon({
+                            className: `service-location ${service.category}`,
+                            html: getServiceIcon(service.category)
+                        })
+                    }).addTo(map);
+
+                    // Add popup with service info
+                    const popupContent = `
+                        <div class="service-popup">
                             <h5>${service.name}</h5>
-                            <p>${service.address}</p>
-                            ${service.phone_number ? `<p>📞 ${service.phone_number}</p>` : ''}
-                            ${service.opening_hours ? `<p>⏰ ${service.opening_hours}</p>` : ''}
-                        `);
-                    marker.addTo(map);
-                    markers.push(marker);
+                            <p><strong>Category:</strong> ${service.category}</p>
+                            <p><strong>Address:</strong> ${service.address}</p>
+                            <p><strong>Hours:</strong> ${service.opening_hours || 'N/A'}</p>
+                            <p><strong>Phone:</strong> ${service.phone_number || 'N/A'}</p>
+                            <button onclick="getDirections(${service.latitude}, ${service.longitude})" class="btn btn-sm btn-primary">Get Directions</button>
+                        </div>
+                    `;
+                    marker.bindPopup(popupContent);
+                    serviceMarkers.push(marker);
                 });
             } else {
-                console.log("No services data received");
+                console.warn("No services data received");
             }
         })
-        .catch(err => {
-            console.log("Error loading services:", err);
+        .catch(error => {
+            console.error("Error loading services:", error);
         });
 }
 
-/**
- * Get user's current location
- */
-function getCurrentLocation(callback) {
-    if (!navigator.geolocation) {
-        alert('Geolocation is not supported by your browser');
-        return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-        position => {
-            callback({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-            });
-        },
-        error => {
-            console.error('Error getting location:', error);
-            alert('Unable to retrieve your location. Please try again or enter your location manually.');
-        },
-        {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        }
-    );
+function getServiceIcon(category) {
+    const icons = {
+        'health': '<i class="fas fa-hospital fa-lg text-danger"></i>',
+        'education': '<i class="fas fa-school fa-lg text-success"></i>',
+        'government': '<i class="fas fa-building fa-lg text-primary"></i>',
+        'social': '<i class="fas fa-users fa-lg text-info"></i>',
+        'default': '<i class="fas fa-map-marker-alt fa-lg text-secondary"></i>'
+    };
+    return icons[category] || icons.default;
 }
+
+function getDirections(lat, lng) {
+    if (userMarker) {
+        const userLat = userMarker.getLatLng().lat;
+        const userLng = userMarker.getLatLng().lng;
+
+        // Send SMS for directions
+        fetch('/api/request_directions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                from_lat: userLat,
+                from_lng: userLng,
+                to_lat: lat,
+                to_lng: lng
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Directions have been sent to your phone!");
+            }
+        })
+        .catch(error => console.error("Error requesting directions:", error));
+    }
+}
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', initMap);
