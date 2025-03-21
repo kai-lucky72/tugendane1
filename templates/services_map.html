@@ -1,27 +1,16 @@
 {% extends "base.html" %}
-{% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1>Government Services Map</h1>
-            <p class="lead">Explore government services across Rwanda</p>
-        </div>
-    </div>
 
-    <div class="row mb-4">
-        <div class="col-12">
-            <div id="services-map" style="height: 500px;"></div>
-        </div>
-    </div>
-</div>
-
+{% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+{% endblock %}
 
+{% block content %}
+<div id="map" style="height: 500px;"></div>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize map centered on Rwanda
-    var map = L.map('services-map').setView([-1.9403, 29.8739], 8);
+    var map = L.map('map').setView([-1.9403, 29.8739], 8);
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

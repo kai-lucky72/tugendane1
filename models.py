@@ -26,6 +26,10 @@ class GovernmentService(db.Model):
     # Relationships
     interactions = relationship("UserInteraction", back_populates="service")
 
+    @property
+    def location(self):
+        return f"POINT({self.longitude} {self.latitude})"
+
     def __repr__(self):
         return f"<GovernmentService {self.name} ({self.category})>"
 
