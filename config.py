@@ -21,12 +21,12 @@ class Config:
     AT_SHORTCODE = os.environ.get('AT_SHORTCODE', '12345')
     AT_SENDER_ID = os.environ.get('AT_SENDER_ID', 'TUGENDANE')  # For alphanumeric sender ID
     AT_COUNTRY_CODE = '+250'  # Rwanda country code
-    
+
     # Webhook configuration
     BASE_URL = os.environ.get('BASE_URL', f'https://{os.environ.get("REPL_SLUG")}.{os.environ.get("REPL_OWNER")}.repl.co')
     SMS_WEBHOOK_PATH = '/api/sms/receive'
     VOICE_WEBHOOK_PATH = '/api/voice/receive'
-    
+
     # Full webhook URLs
     SMS_WEBHOOK_URL = f'{BASE_URL}{SMS_WEBHOOK_PATH}'
     VOICE_WEBHOOK_URL = f'{BASE_URL}{VOICE_WEBHOOK_PATH}'
