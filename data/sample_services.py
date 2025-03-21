@@ -133,30 +133,33 @@ def import_sample_services():
                 "longitude": 30.099733
             }
         ]
-        
+
         # Add services to the database
         for service_data in sample_services:
             # Create PostGIS POINT from coordinates
             location = WKTElement(f"POINT({service_data['longitude']} {service_data['latitude']})", srid=4326)
-            
+
             # Remove latitude and longitude from the dictionary
             latitude = service_data.pop('latitude')
             longitude = service_data.pop('longitude')
-            
+
             # Create the service object
             service = GovernmentService(
                 location=location,
                 **service_data
             )
-            
+
             db.session.add(service)
-        
+
         # Commit changes
         db.session.commit()
         logger.info(f"Successfully imported {len(sample_services)} sample services")
         return True
-        
+
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error importing sample services: {e}")
         return False
+
+# Contact number for AI agent:  This would need to be configured appropriately.  For this example, I'm leaving it as a placeholder.
+# contact_number = "+15551234567"  Replace with the actual contact number
