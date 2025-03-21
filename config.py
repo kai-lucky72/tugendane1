@@ -35,7 +35,7 @@ class Config:
     VOICE_WEBHOOK_URL = f'{BASE_URL}{VOICE_WEBHOOK_PATH}'
 
     # OpenAI configuration for LLM
-    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'your-openai-key')
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
     # Celery configuration
     CELERY_BROKER_URL = 'redis://localhost:6379/0'

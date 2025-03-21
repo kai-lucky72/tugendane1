@@ -6,29 +6,22 @@ from sqlalchemy import Index, func, Column, Integer, String, Boolean, DateTime, 
 from sqlalchemy.orm import relationship
 
 class GovernmentService(db.Model):
-    """Model for government services (clinics, offices, etc.)"""
     __tablename__ = 'government_services'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    category = db.Column(db.String(100), nullable=False)  # health, education, social services, etc.
+    category = db.Column(db.String(100))
     description = db.Column(db.Text)
-    phone_number = db.Column(db.String(20))
-    email = db.Column(db.String(100))
     address = db.Column(db.String(255))
-    opening_hours = db.Column(db.String(255))  # Stored as string like "Mon-Fri: 8:00-17:00"
+    phone_number = db.Column(db.String(50))
+    email = db.Column(db.String(255))
+    opening_hours = db.Column(db.String(255))
     required_documents = db.Column(db.Text)
-
-    # Location data
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
-
-    # Additional data as JSON
-    service_metadata = db.Column(JSON)
-
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    service_metadata = db.Column(db.JSON)
+    created_at = db.Column(db.DateTime, default=db.func.now())
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
     # Relationships
     interactions = relationship("UserInteraction", back_populates="service")
