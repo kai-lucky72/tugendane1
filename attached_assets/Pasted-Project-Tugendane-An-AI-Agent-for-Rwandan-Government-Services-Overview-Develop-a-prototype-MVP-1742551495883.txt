@@ -1,0 +1,73 @@
+Project: Tugendane – An AI Agent for Rwandan Government Services
+
+Overview:
+Develop a prototype (MVP) of Tugendane, an AI agent designed to help Rwandan citizens access nearby government services via SMS, voice calls, and optionally a web interface. The system should work both online and offline (using SMS/voice in low-connectivity environments). The core functions include service lookup, locational guidance, service availability verification, call connection, and follow-up confirmation.
+
+Requirements & Architecture:
+
+Communication Interfaces:
+SMS Gateway: Use Africa’s Talking SMS API (free trial available) to send and receive SMS messages.
+Voice Calls: Integrate a voice call API (e.g., Twilio’s free trial or Africa’s Talking Voice API) to handle inbound/outbound calls, including speech-to-text and text-to-speech.
+Web Interface (Optional): Create a simple web-based chat interface using Flask and a lightweight front-end framework (or plain HTML/CSS/JS).
+Backend Server:
+Language & Framework: Use Python with Flask to build RESTful endpoints that handle incoming SMS/calls and interact with other components.
+Hosting: Deploy on free hosting platforms like Replit, Render, or Railway.app.
+Database:
+Service Database: Use PostgreSQL with PostGIS (free-tier via Supabase or ElephantSQL) to store government service data (name, category, location, operating hours, phone numbers).
+Data: Import sample data (or public data from data.gov.rw/OpenStreetMap) for government service locations.
+NLP & AI Engine:
+Intent & Entity Recognition: Use spaCy or Rasa NLU for processing SMS/call text input. The system should detect intents (e.g., “find clinic”) and extract entities (e.g., “clinic”, “location”).
+Voice Processing:
+Speech-to-Text: Use Coqui STT (open-source) for converting voice inputs to text.
+Text-to-Speech: Use Coqui TTS or Festival for generating voice responses.
+Geolocation & Routing:
+Mapping Data: Utilize OpenStreetMap (OSM) data.
+Routing Engine: Integrate GraphHopper (open-source) to calculate the nearest service location and generate step-by-step text directions.
+Follow-Up Scheduler:
+Use Celery (or Python’s APScheduler) with Redis for scheduling follow-up SMS messages (e.g., “Did you receive the service?”) and tracking user responses.
+User Flow:
+
+Step 1: The user sends an SMS (e.g., “I need a health clinic near me”).
+Step 2: The SMS gateway receives the message and forwards it to the Flask backend.
+Step 3: The NLP engine processes the message to determine the intent and extract entities.
+Step 4: If location data is missing, the system prompts the user for their current location.
+Step 5: The backend queries the PostgreSQL database (with PostGIS) to find the nearest service based on the provided location.
+Step 6: The geolocation module (using GraphHopper and OSM data) generates text directions to the service.
+Step 7: The system responds via SMS with the service details, directions, and advice (e.g., operating hours, necessary documents).
+Step 8: Optionally, if requested, the system uses the voice API to connect the user directly to the service.
+Step 9: A follow-up SMS is scheduled to confirm that the user received the service. Tracking stops when the user replies “DONE” or confirms service completion.
+Implementation Instructions:
+
+Set Up Environment:
+Install Python and required libraries: Flask, spaCy, psycopg2-binary, Celery, Redis, etc.
+Set up Docker locally if needed for containerization.
+Integrate Communication APIs:
+Register for Africa’s Talking and/or Twilio, and configure their API keys.
+Write Python modules for sending/receiving SMS and managing voice calls.
+Develop the Backend:
+Create a Flask application with endpoints to handle SMS/call requests.
+Integrate the NLP module to parse incoming messages.
+Connect to the PostgreSQL database to query government service data.
+Implement Geolocation & Routing:
+Import OSM data and set up GraphHopper.
+Write functions to calculate distance and generate human-readable directions.
+Build the Follow-Up Scheduler:
+Configure Celery with Redis to schedule and send follow-up SMS messages.
+Testing & Deployment:
+Test the entire flow locally using Ngrok (for SMS/webhook testing) and sample data.
+Deploy your Flask app on a free hosting service like Render or Replit.
+Additional Notes:
+
+Use free tiers and open-source libraries wherever possible.
+Document your code and create a README explaining how to run the prototype.
+Make sure to include error handling for network issues, incorrect inputs, and missing data.
+Design the prototype modularly so that individual components (communication, NLP, geolocation) can be improved or replaced easily.
+Output Expectation:
+The final deliverable should be a fully functional prototype of Tugendane with a documented codebase, demonstrating:
+
+Receiving and processing SMS and voice calls.
+Identifying user requests with NLP.
+Looking up and providing the nearest government service with directions.
+Following up with the user to confirm service receipt.
+A simple web interface (optional) for demonstration.
+Please provide all necessary code, configuration files, and instructions to run the system locally.
