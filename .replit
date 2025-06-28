@@ -31,10 +31,6 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -m pip install flask"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
 args = "python -m pip install -e ."
 
 [[workflows.workflow.tasks]]
@@ -49,10 +45,6 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python -m pip install flask"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
