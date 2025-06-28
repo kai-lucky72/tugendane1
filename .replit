@@ -44,6 +44,13 @@ author = 40727503
 mode = "sequential"
 
 [[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -m pip install -e ."
+
+[[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python main.py"
 
